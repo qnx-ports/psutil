@@ -54,7 +54,7 @@ static PyMethodDef posix_methods[] = {
     {"net_if_mtu", psutil_net_if_mtu, METH_VARARGS},
     {"proc_priority_get", psutil_proc_priority_get, METH_VARARGS},
     {"proc_priority_set", psutil_proc_priority_set, METH_VARARGS},
-#if defined(PSUTIL_BSD) || defined(PSUTIL_OSX)
+#if defined(PSUTIL_BSD) || defined(PSUTIL_OSX) || defined(PSUTIL_QNX)
     {"net_if_duplex_speed", psutil_net_if_duplex_speed, METH_VARARGS},
 #endif
 #if !defined(PSUTIL_OPENBSD) && !defined(PSUTIL_AIX) && !defined(PSUTIL_QNX)

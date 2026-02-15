@@ -25,7 +25,7 @@
 #include <linux/if_packet.h>
 #endif
 
-#if defined(PSUTIL_BSD) || defined(PSUTIL_OSX)
+#if defined(PSUTIL_BSD) || defined(PSUTIL_OSX) || defined(PSUTIL_QNX)
 #include <netdb.h>
 #include <netinet/in.h>
 #include <net/if_dl.h>

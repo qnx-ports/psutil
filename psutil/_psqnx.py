@@ -215,27 +215,8 @@ def sensors_battery():
 # =====================================================================
 
 
-# net_io_counters = cext.net_io_counters
-# net_if_addrs = cext.net_if_addrs
-
-
-def net_connections(kind='inet'):
-    """System-wide network connections."""
-    # Note: on macOS this will fail with AccessDenied unless
-    # the process is owned by root.
-    ret = []
-    for pid in pids():
-        try:
-            cons = Process(pid).net_connections(kind)
-        except NoSuchProcess:
-            continue
-        else:
-            if cons:
-                for c in cons:
-                    c = list(c) + [pid]
-                    ret.append(ntp.sconn(*c))
-    return ret
-
+net_io_counters = cext.net_io_counters
+net_if_addrs = cext.net_if_addrs
 
 def net_if_stats():
     """Get NIC stats (isup, duplex, speed, mtu)."""
@@ -256,6 +237,23 @@ def net_if_stats():
             output_flags = ','.join(flags)
             isup = 'running' in flags
             ret[name] = ntp.snicstats(isup, duplex, speed, mtu, output_flags)
+    return ret
+
+def net_connections(kind='inet'):
+    """System-wide network connections."""
+    # Note: on macOS this will fail with AccessDenied unless
+    # the process is owned by root.
+    ret = []
+    for pid in pids():
+        try:
+            cons = Process(pid).net_connections(kind)
+        except NoSuchProcess:
+            continue
+        else:
+            if cons:
+                for c in cons:
+                    c = list(c) + [pid]
+                    ret.append(ntp.sconn(*c))
     return ret
 
 

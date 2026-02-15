@@ -33,6 +33,8 @@
     #include "../../arch/netbsd/init.h"
 #elif defined(PSUTIL_SUNOS)
     #include "../../arch/sunos/init.h"
+#elif defined(PSUTIL_QNX)
+    #include "../../arch/qnx/init.h"
 #endif
 
 // print debug messages when set to 1

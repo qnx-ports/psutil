@@ -464,6 +464,7 @@ elif QNX:
         sources=(
             sources
             + ["psutil/_psutil_qnx.c"]
+            + glob.glob("psutil/arch/qnx/*.c")
         ),
         libraries=["socket"],
         define_macros=macros,

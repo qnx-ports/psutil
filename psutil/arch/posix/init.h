@@ -19,7 +19,7 @@ extern PyObject *ZombieProcessError;
     PyObject *psutil_users(PyObject *self, PyObject *args);
 #endif
 
-#if defined(PSUTIL_BSD) || defined(PSUTIL_OSX)
+#if defined(PSUTIL_BSD) || defined(PSUTIL_OSX) || defined(PSUTIL_QNX)
     #include <sys/types.h>
     #define PSUTIL_HAS_SYSCTL
     int psutil_sysctl(int *mib, u_int miblen, void *buf, size_t buflen);
@@ -33,7 +33,7 @@ extern PyObject *ZombieProcessError;
     #endif
 #endif
 
-#if defined(PSUTIL_BSD) || defined(PSUTIL_OSX)
+#if defined(PSUTIL_BSD) || defined(PSUTIL_OSX)  || defined(PSUTIL_QNX)
     #define PSUTIL_HAS_NET_IF_DUPLEX_SPEED
     PyObject *psutil_net_if_duplex_speed(PyObject *self, PyObject *args);
 #endif
