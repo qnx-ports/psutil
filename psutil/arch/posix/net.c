@@ -43,6 +43,11 @@
 #include <netdb.h>
 #endif
 
+#if defined(PSUTIL_QNX)
+#include <netdb.h>
+#include <netinet/in.h>
+#endif
+
 #include "../../arch/all/init.h"
 
 

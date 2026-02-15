@@ -39,6 +39,7 @@ from . import _common
 from . import _ntuples as _ntp
 from ._common import AIX
 from ._common import BSD
+from ._common import QNX
 from ._common import CONN_CLOSE
 from ._common import CONN_CLOSE_WAIT
 from ._common import CONN_CLOSING
@@ -131,6 +132,11 @@ elif AIX:
 
     # This is public API and it will be retrieved from _pslinux.py
     # via sys.modules.
+    PROCFS_PATH = "/proc"
+
+elif QNX:
+    from . import _psqnx as _psplatform
+
     PROCFS_PATH = "/proc"
 
 else:  # pragma: no cover

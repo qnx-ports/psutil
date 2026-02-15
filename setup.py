@@ -57,6 +57,7 @@ sys.path.insert(0, os.path.join(HERE, "psutil"))
 
 from _common import AIX  # noqa: E402
 from _common import BSD  # noqa: E402
+from _common import QNX  # noqa: E402
 from _common import FREEBSD  # noqa: E402
 from _common import LINUX  # noqa: E402
 from _common import MACOS  # noqa: E402
@@ -449,6 +450,22 @@ elif AIX:
             + glob.glob("psutil/arch/aix/*.c")
         ),
         libraries=["perfstat"],
+        define_macros=macros,
+        # fmt: off
+        # python 2.7 compatibility requires no comma
+        **py_limited_api
+        # fmt: on
+    )
+elif QNX:
+    macros.append(("PSUTIL_QNX", 1))
+
+    ext = Extension(
+        'psutil._psutil_qnx',
+        sources=(
+            sources
+            + ["psutil/_psutil_qnx.c"]
+        ),
+        libraries=["socket"],
         define_macros=macros,
         # fmt: off
         # python 2.7 compatibility requires no comma

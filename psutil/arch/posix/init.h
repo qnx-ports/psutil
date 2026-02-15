@@ -14,7 +14,7 @@ extern PyObject *ZombieProcessError;
 #endif
 
 // clang-format off
-#if !defined(PSUTIL_OPENBSD) && !defined(PSUTIL_AIX)
+#if !defined(PSUTIL_OPENBSD) && !defined(PSUTIL_AIX) && !defined(PSUTIL_QNX)
     #define PSUTIL_HAS_POSIX_USERS
     PyObject *psutil_users(PyObject *self, PyObject *args);
 #endif

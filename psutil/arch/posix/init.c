@@ -57,7 +57,7 @@ static PyMethodDef posix_methods[] = {
 #if defined(PSUTIL_BSD) || defined(PSUTIL_OSX)
     {"net_if_duplex_speed", psutil_net_if_duplex_speed, METH_VARARGS},
 #endif
-#if !defined(PSUTIL_OPENBSD) && !defined(PSUTIL_AIX)
+#if !defined(PSUTIL_OPENBSD) && !defined(PSUTIL_AIX) && !defined(PSUTIL_QNX)
     {"users", psutil_users, METH_VARARGS},
 #endif
 #if defined(PSUTIL_OSX) || defined(PSUTIL_BSD)
@@ -101,7 +101,7 @@ psutil_posix_add_constants(PyObject *mod) {
         return -1;
 
 #if defined(PSUTIL_BSD) || defined(PSUTIL_OSX) || defined(PSUTIL_SUNOS) \
-    || defined(PSUTIL_AIX)
+    || defined(PSUTIL_AIX) || defined(PSUTIL_QNX)
     if (PyModule_AddIntConstant(mod, "AF_LINK", AF_LINK))
         return -1;
 #endif
