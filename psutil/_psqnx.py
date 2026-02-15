@@ -263,14 +263,7 @@ def net_connections(kind='inet'):
 
 
 def boot_time():
-    """Return the system boot time expressed in seconds since the epoch."""
-    path = f"{get_procfs_path()}/stat"
-    with open_binary(path) as f:
-        for line in f:
-            if line.startswith(b'btime'):
-                return float(line.strip().split()[1])
-        msg = f"line 'btime' not found in {path}"
-        raise RuntimeError(msg)
+    return cext.boot_time()
 
 
 
