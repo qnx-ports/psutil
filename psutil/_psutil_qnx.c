@@ -21,6 +21,7 @@ static PyMethodDef mod_methods[] = {
     {"check_pid_range", psutil_check_pid_range, METH_VARARGS},
     {"set_debug", psutil_set_debug, METH_VARARGS},
     {"boot_time", psutil_boot_time, METH_VARARGS},
+    {"cpu_count_logical", psutil_cpu_count_logical, METH_VARARGS},
 
     {"net_io_counters", psutil_net_io_counters, METH_VARARGS},
     {NULL, NULL, 0, NULL}

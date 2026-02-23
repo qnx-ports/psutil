@@ -223,7 +223,7 @@ CPU
   This is what cloud providers often refer to as vCPUs.
   If *logical* is ``False`` return the number of physical cores only, or
   ``None`` if undetermined.
-  On OpenBSD and NetBSD ``psutil.cpu_count(logical=False)`` always return
+  On OpenBSD, NetBSD and QNX ``psutil.cpu_count(logical=False)`` always return
   ``None``.
   Example on a system having 2 cores + Hyper Threading:
 

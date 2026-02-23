@@ -13,8 +13,6 @@
 
 #include "../../arch/all/init.h"
 
-static const int MAX_RETRIES = 10;
-
 PyObject *
 psutil_net_io_counters(PyObject *self, PyObject *args) {
     char *buf = NULL, *lim, *next;

@@ -148,7 +148,8 @@ def cpu_count_logical():
 
 def cpu_count_cores():
     """Return the number of CPU cores in the system."""
-    return cext.cpu_count_cores()
+    # QNX isn't aware of hyperthreaded cores
+    return None
 
 
 def cpu_stats():

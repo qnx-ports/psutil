@@ -9,3 +9,5 @@
 
 PyObject *psutil_net_io_counters(PyObject *self, PyObject *args);
 PyObject *psutil_boot_time(PyObject *self, PyObject *args);
+PyObject *psutil_cpu_count_logical(PyObject *self, PyObject *args);
+PyObject *psutil_cpu_count_cores(PyObject *self, PyObject *args);
