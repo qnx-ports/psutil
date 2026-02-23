@@ -160,9 +160,7 @@ def cpu_stats():
 
 
 def cpu_freq():
-    curr, min_, max_ = cext.cpu_freq()
-    return [ntp.scpufreq(curr, min_, max_)]
-
+    return [ntp.scpufreq(x, y, z) for x,y,z in cext.cpu_freq()]
 
 # =====================================================================
 # --- disks

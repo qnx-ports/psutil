@@ -293,7 +293,7 @@ CPU
         scpufreq(current=1754.289, min=800.0, max=3500.0)]
 
     Availability: Linux, macOS, Windows, FreeBSD, OpenBSD. *percpu* only
-    supported on Linux and FreeBSD.
+    supported on Linux, FreeBSD and QNX. *min* and *max* never available on QNX.
 
     .. versionadded:: 5.1.0
 
