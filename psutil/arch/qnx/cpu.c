@@ -25,7 +25,6 @@ psutil_cpu_freq(PyObject *self, PyObject *args) {
     struct cpuinfo_entry *cpu = cpuinfo;
     int i=0;
     while(i < _syspage_ptr->num_cpu) {
-
         py_tuple = Py_BuildValue(
                 "(Idd)",
                 cpu->speed,

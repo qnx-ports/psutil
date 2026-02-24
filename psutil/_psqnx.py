@@ -13,6 +13,7 @@ from . import _common
 from . import _ntuples as ntp
 from . import _psposix
 from . import _psutil_qnx as cext
+from ._common import ENCODING
 from ._common import get_procfs_path
 from ._common import AccessDenied
 from ._common import NoSuchProcess
@@ -34,6 +35,7 @@ __extra__all__ = [
 # =====================================================================
 
 PAGESIZE = cext.getpagesize()
+CLOCK_TICKS = os.sysconf("SC_CLK_TCK")
 AF_LINK = cext.AF_LINK
 
 TCP_STATUSES = {
@@ -59,20 +61,6 @@ TCP_STATUSES = {
 #     cext.SZOMB: _common.STATUS_ZOMBIE,
 # }
 
-kinfo_proc_map = dict(
-    ppid=0,
-    ruid=1,
-    euid=2,
-    suid=3,
-    rgid=4,
-    egid=5,
-    sgid=6,
-    ttynr=7,
-    ctime=8,
-    status=9,
-    name=10,
-)
-
 pidtaskinfo_map = dict(
     cpuutime=0,
     cpustime=1,
@@ -82,6 +70,21 @@ pidtaskinfo_map = dict(
     pageins=5,
     numthreads=6,
     volctxsw=7,
+)
+
+procbasicinfo_map = dict (
+    parent_pid=0,
+    start_time=1,
+    utime=2,
+    stime=3,
+    priority=4,
+    num_threads=5,
+    uid=6,
+    gid=7,
+    euid=8,
+    egid=9,
+    suid=10,
+    sgid=11
 )
 
 
@@ -302,19 +305,9 @@ def users():
 
 
 def pids():
-    ls = cext.pids()
-    if 0 not in ls:
-        # On certain macOS versions pids() C doesn't return PID 0 but
-        # "ps" does and the process is querable via sysctl():
-        # https://travis-ci.org/giampaolo/psutil/jobs/309619941
-        try:
-            Process(0).create_time()
-            ls.insert(0, 0)
-        except NoSuchProcess:
-            pass
-        except AccessDenied:
-            ls.insert(0, 0)
-    return ls
+    """Returns a list of PIDs currently running on the system."""
+    path = get_procfs_path().encode(ENCODING)
+    return [int(x) for x in os.listdir(path) if x.isdigit()]
 
 
 pid_exists = _psposix.pid_exists
@@ -345,57 +338,80 @@ def wrap_exceptions(fun):
 class Process:
     """Wrapper class around underlying C implementation."""
 
-    __slots__ = ["_cache", "_name", "_ppid", "pid"]
+    __slots__ = ["_cache", "_name", "_ppid", "_procfs_path", "pid"]
 
     def __init__(self, pid):
         self.pid = pid
         self._name = None
         self._ppid = None
+        self._procfs_path = get_procfs_path()
 
     @wrap_exceptions
     @memoize_when_activated
-    def _get_kinfo_proc(self):
-        # Note: should work with all PIDs without permission issues.
-        ret = cext.proc_kinfo_oneshot(self.pid)
-        assert len(ret) == len(kinfo_proc_map)
-        return ret
+    def _proc_basic_info(self):
+        return cext.proc_basic_info(self.pid, self._procfs_path)
 
     @wrap_exceptions
     @memoize_when_activated
-    def _get_pidtaskinfo(self):
-        # Note: should work for PIDs owned by user only.
-        ret = cext.proc_pidtaskinfo_oneshot(self.pid)
-        assert len(ret) == len(pidtaskinfo_map)
-        return ret
+    def _proc_vmstats(self):
+        stats = {}
+        f = self._readfile(f"{self._procfs_path}/{self.pid}/vmstat")
+        for line in f.split("\n"):
+            if len(line) == 0:
+                continue
+            s1 = line.split("=")
+            if len(s1) < 2:
+                continue
+            s2 = s1[0].split(".")
+            if len(s1) < 2:
+                continue
+            key = s2[1]
+            s3 = s1[1].split(" ")
+            try:
+                if s3[0].startswith("0x"):
+                    val = int(s3[0], 16) * PAGESIZE
+                else:
+                    val = int(s3[0])
+            except:
+                continue
+            stats[key] = val
+        return stats
+
+    def _readfile(self, path):
+        try:
+            with open(path, 'r') as f:
+                return f.read().strip('\x00')
+        except:
+            return ""
 
     def oneshot_enter(self):
-        self._get_kinfo_proc.cache_activate(self)
-        self._get_pidtaskinfo.cache_activate(self)
+        self._proc_basic_info.cache_activate(self)
+        self._proc_vmstats.cache_activate(self)
 
     def oneshot_exit(self):
-        self._get_kinfo_proc.cache_deactivate(self)
-        self._get_pidtaskinfo.cache_deactivate(self)
+        self._proc_basic_info.cache_deactivate(self)
+        self._proc_vmstats.cache_deactivate(self)
 
     @wrap_exceptions
     def name(self):
-        name = self._get_kinfo_proc()[kinfo_proc_map['name']]
-        return name if name is not None else cext.proc_name(self.pid)
+        return "UNIMPLEMENTED"
 
     @wrap_exceptions
     def exe(self):
-        return cext.proc_exe(self.pid)
+        return self._readfile(f"{self._procfs_path}/{self.pid}/exefile")
 
     @wrap_exceptions
     def cmdline(self):
-        return cext.proc_cmdline(self.pid)
+        return self._readfile(f"{self._procfs_path}/{self.pid}/cmdline")
 
     @wrap_exceptions
     def environ(self):
-        return parse_environ_block(cext.proc_environ(self.pid))
+        # yeah no, theres no way QNX let's us read someone elses ENV variables without root
+        return {}
 
     @wrap_exceptions
     def ppid(self):
-        self._ppid = self._get_kinfo_proc()[kinfo_proc_map['ppid']]
+        self._ppid = self._proc_basic_info()[procbasicinfo_map['parent']]
         return self._ppid
 
     @wrap_exceptions
@@ -404,53 +420,52 @@ class Process:
 
     @wrap_exceptions
     def uids(self):
-        rawtuple = self._get_kinfo_proc()
+        rawtuple = self._proc_basic_info()
         return ntp.puids(
-            rawtuple[kinfo_proc_map['ruid']],
-            rawtuple[kinfo_proc_map['euid']],
-            rawtuple[kinfo_proc_map['suid']],
+            rawtuple[procbasicinfo_map['uid']],
+            rawtuple[procbasicinfo_map['euid']],
+            rawtuple[procbasicinfo_map['suid']],
         )
 
     @wrap_exceptions
     def gids(self):
-        rawtuple = self._get_kinfo_proc()
+        rawtuple = self._proc_basic_info()
         return ntp.puids(
-            rawtuple[kinfo_proc_map['rgid']],
+            rawtuple[kinfo_proc_map['gid']],
             rawtuple[kinfo_proc_map['egid']],
             rawtuple[kinfo_proc_map['sgid']],
         )
 
     @wrap_exceptions
     def terminal(self):
-        tty_nr = self._get_kinfo_proc()[kinfo_proc_map['ttynr']]
-        tmap = _psposix.get_terminal_map()
-        try:
-            return tmap[tty_nr]
-        except KeyError:
-            return None
+        return None
 
     @wrap_exceptions
     def memory_info(self):
-        rawtuple = self._get_pidtaskinfo()
-        return ntp.pmem(
-            rawtuple[pidtaskinfo_map['rss']],
-            rawtuple[pidtaskinfo_map['vms']],
-            rawtuple[pidtaskinfo_map['pfaults']],
-            rawtuple[pidtaskinfo_map['pageins']],
-        )
+        rawdict = self._proc_vmstats()
+        return ntp.pmem(rawdict["rss"], rawdict["map_size"])
 
     @wrap_exceptions
     def memory_full_info(self):
-        basic_mem = self.memory_info()
-        uss = cext.proc_memory_uss(self.pid)
-        return ntp.pfullmem(*basic_mem + (uss,))
+        rawdict = self._proc_vmstats()
+        return ntp.pfullmem(
+                rawdict["rss"],
+                rawdict["map_size"],
+                rawdict["map_phys"],
+                rawdict["map_shared"],
+                rawdict["map_private"],
+                rawdict["vm_region"],
+                rawdict["vm_map"],
+                rawdict["anon_rsv"],
+                rawdict["rlimit_data"]
+            )
 
     @wrap_exceptions
     def cpu_times(self):
-        rawtuple = self._get_pidtaskinfo()
+        rawtuple = self.proc_basic_info()
         return ntp.pcputimes(
-            rawtuple[pidtaskinfo_map['cpuutime']],
-            rawtuple[pidtaskinfo_map['cpustime']],
+            rawtuple[pidtaskinfo_map['utime'] / CLOCK_TICKS],
+            rawtuple[pidtaskinfo_map['stime'] / CLOCK_TICKS],
             # children user / system times are not retrievable (set to 0)
             0.0,
             0.0,
@@ -458,34 +473,24 @@ class Process:
 
     @wrap_exceptions
     def create_time(self, monotonic=False):
-        ctime = self._get_kinfo_proc()[kinfo_proc_map['ctime']]
+        ctime = self.self.proc_basic_info()[procbasicinfo_map['start_time']]
         if not monotonic:
             ctime = adjust_proc_create_time(ctime)
         return ctime
 
     @wrap_exceptions
     def num_ctx_switches(self):
-        # Unvoluntary value seems not to be available;
-        # getrusage() numbers seems to confirm this theory.
-        # We set it to 0.
-        vol = self._get_pidtaskinfo()[pidtaskinfo_map['volctxsw']]
-        return ntp.pctxsw(vol, 0)
+        # Doubt we have this information
+        return ntp.pctxsw(0, 0)
 
     @wrap_exceptions
     def num_threads(self):
-        return self._get_pidtaskinfo()[pidtaskinfo_map['numthreads']]
+        ctime = self.self.proc_basic_info()[procbasicinfo_map['num_threads']]
 
     @wrap_exceptions
     def open_files(self):
-        if self.pid == 0:
-            return []
-        files = []
-        rawlist = cext.proc_open_files(self.pid)
-        for path, fd in rawlist:
-            if isfile_strict(path):
-                ntuple = ntp.popenfile(path, fd)
-                files.append(ntuple)
-        return files
+        # This information is not available 
+        return []
 
     @wrap_exceptions
     def net_connections(self, kind='inet'):
@@ -502,9 +507,7 @@ class Process:
 
     @wrap_exceptions
     def num_fds(self):
-        if self.pid == 0:
-            return 0
-        return cext.proc_num_fds(self.pid)
+        return 0
 
     @wrap_exceptions
     def wait(self, timeout=None):

@@ -9,6 +9,7 @@ from ._common import BSD
 from ._common import FREEBSD
 from ._common import LINUX
 from ._common import MACOS
+from ._common import QNX
 from ._common import SUNOS
 from ._common import WINDOWS
 
@@ -427,3 +428,11 @@ elif AIX:
 
     # psutil.virtual_memory()
     svmem = nt("svmem", ("total", "available", "percent", "used", "free"))
+
+elif QNX:
+
+    # psutil.Process.memory_info()
+    pmem = nt("pmem",("rss", "vms"))
+
+    # psutil.Process.memory_full_info()
+    pfullmem = nt("pfullmem", pmem._fields + ("physical", "shared", "private", "region", "map", "anon_rsv", "rlimit_data"))
