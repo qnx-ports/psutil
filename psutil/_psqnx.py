@@ -77,14 +77,13 @@ procbasicinfo_map = dict (
     start_time=1,
     utime=2,
     stime=3,
-    priority=4,
-    num_threads=5,
-    uid=6,
-    gid=7,
-    euid=8,
-    egid=9,
-    suid=10,
-    sgid=11
+    num_threads=4,
+    uid=5,
+    gid=6,
+    euid=7,
+    egid=8,
+    suid=9,
+    sgid=10
 )
 
 
@@ -350,7 +349,7 @@ class Process:
     @wrap_exceptions
     @memoize_when_activated
     def _proc_basic_info(self):
-        return cext.proc_basic_info(self.pid, self._procfs_path)
+        return cext.proc_basic_info(self.pid)
 
     @wrap_exceptions
     @memoize_when_activated

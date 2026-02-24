@@ -38,12 +38,11 @@ psutil_proc_basic_info(PyObject *self, PyObject *args) {
     }
 
     return Py_BuildValue(
-        "iKKKBiiiiiii",
+        "iKKKBiiiiii",
         info.parent,
         info.start_time,
         info.utime,
         info.stime,
-        info.priority,
         info.num_threads,
         info.uid,
         info.gid,
