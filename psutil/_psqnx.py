@@ -151,6 +151,7 @@ def cpu_count_logical():
 
 def cpu_count_cores():
     """Return the number of CPU cores in the system."""
+    # Not supported
     # QNX isn't aware of hyperthreaded cores
     return None
 
@@ -406,7 +407,8 @@ class Process:
 
     @wrap_exceptions
     def environ(self):
-        # yeah no, theres no way QNX let's us read someone elses ENV variables without root
+        # Not supported
+        # Theres no way QNX let's us read someone elses ENV variables without root
         return {}
 
     @wrap_exceptions
@@ -416,7 +418,8 @@ class Process:
 
     @wrap_exceptions
     def cwd(self):
-        return cext.proc_cwd(self.pid)
+        # We don't have this info
+        return ""
 
     @wrap_exceptions
     def uids(self):
@@ -438,6 +441,7 @@ class Process:
 
     @wrap_exceptions
     def terminal(self):
+        # Not supported
         return None
 
     @wrap_exceptions
@@ -489,7 +493,7 @@ class Process:
 
     @wrap_exceptions
     def open_files(self):
-        # This information is not available 
+        # Not supported
         return []
 
     @wrap_exceptions

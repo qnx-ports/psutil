@@ -13,3 +13,5 @@ PyObject *psutil_cpu_count_logical(PyObject *self, PyObject *args);
 PyObject *psutil_cpu_count_cores(PyObject *self, PyObject *args);
 PyObject *psutil_cpu_freq(PyObject *self, PyObject *args);
 PyObject *psutil_proc_basic_info(PyObject *self, PyObject *args);
+PyObject *psutil_proc_priority_get(PyObject *self, PyObject *args);
+PyObject *psutil_proc_priority_set(PyObject *self, PyObject *args);

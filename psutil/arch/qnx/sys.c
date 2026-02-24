@@ -5,9 +5,9 @@
  */
 
 #include <Python.h>
+#include <sys/syspage.h>
 
 #include "../../arch/all/init.h"
-#include <sys/syspage.h>
 
 // Return a Python float indicating the system boot time expressed in
 // seconds since the epoch.

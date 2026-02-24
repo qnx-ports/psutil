@@ -49,6 +49,7 @@ psutil_raise_for_pid(pid_t pid, char *syscall) {
 }
 
 
+#if !defined(PSUTIL_QNX)
 // Get PID priority.
 PyObject *
 psutil_proc_priority_get(PyObject *self, PyObject *args) {
@@ -89,3 +90,4 @@ psutil_proc_priority_set(PyObject *self, PyObject *args) {
         return psutil_oserror();
     Py_RETURN_NONE;
 }
+#endif // !defined(PSUTIL_QNX)

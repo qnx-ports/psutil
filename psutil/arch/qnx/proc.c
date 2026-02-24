@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sched.h>
+
+#include "../../arch/all/init.h"
 
 PyObject *
 psutil_proc_basic_info(PyObject *self, PyObject *args) {
@@ -49,4 +52,37 @@ psutil_proc_basic_info(PyObject *self, PyObject *args) {
         info.suid,
         info.sgid
     );
+}
+
+// Get PID priority.
+PyObject *
+psutil_proc_priority_get(PyObject *self, PyObject *args) {
+    pid_t pid;
+    struct sched_param prio;
+
+    if (!PyArg_ParseTuple(args, _Py_PARSE_PID, &pid))
+        return NULL;
+
+    if (sched_getparam(pid, &prio))
+        return psutil_oserror();
+    return Py_BuildValue("i", prio.sched_curpriority);
+}
+
+
+// Set PID priority.
+PyObject *
+psutil_proc_priority_set(PyObject *self, PyObject *args) {
+    pid_t pid;
+    int priority;
+    struct sched_param prio;
+
+    if (!PyArg_ParseTuple(args, _Py_PARSE_PID "i", &pid, &priority))
+        return NULL;
+
+    prio.sched_priority = SCHED_PRIO_LIMIT_SATURATE(priority);
+
+    if(sched_setparam(pid, &prio))
+        return psutil_oserror();
+
+    Py_RETURN_NONE;
 }

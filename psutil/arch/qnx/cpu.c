@@ -5,9 +5,10 @@
  */
 
 #include <Python.h>
-#include "../../arch/all/init.h"
 #include <sys/syspage.h>
 #include <stdio.h>
+
+#include "init.h"
 
 PyObject *
 psutil_cpu_count_logical(PyObject *self, PyObject *args) {

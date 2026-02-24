@@ -54,8 +54,11 @@ PyObject *psutil_net_if_addrs(PyObject *self, PyObject *args);
 PyObject *psutil_net_if_flags(PyObject *self, PyObject *args);
 PyObject *psutil_net_if_is_running(PyObject *self, PyObject *args);
 PyObject *psutil_net_if_mtu(PyObject *self, PyObject *args);
+#if !defined(PSUTIL_QNX)
+// QNX uses a different scheduling system, getpriority() always returns 0
 PyObject *psutil_proc_priority_get(PyObject *self, PyObject *args);
 PyObject *psutil_proc_priority_set(PyObject *self, PyObject *args);
+#endif // !defined(PSUTIL_QNX)
 #if defined(PSUTIL_OSX) || defined(PSUTIL_BSD)
 PyObject *psutil_proc_is_zombie(PyObject *self, PyObject *args);
 #endif
