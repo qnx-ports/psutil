@@ -8,6 +8,7 @@ import errno
 import enum
 import functools
 import os
+import re
 
 from . import _common
 from . import _ntuples as ntp
@@ -111,34 +112,45 @@ procbasicinfo_map = dict (
 # =====================================================================
 
 
-# TODO
 def virtual_memory():
     """System virtual memory as a namedtuple."""
-    total, active, inactive, wired, free, speculative = cext.virtual_mem()
-    # This is how Zabbix calculate avail and used mem:
-    # https://github.com/zabbix/zabbix/blob/master/src/libs/zbxsysinfo/osx/memory.c
-    # Also see: https://github.com/giampaolo/psutil/issues/1277
-    avail = inactive + free
-    used = active + wired
-    # This is NOT how Zabbix calculates free mem but it matches "free"
-    # cmdline utility.
-    free -= speculative
-    percent = usage_percent((total - avail), total, round_=1)
-    return ntp.svmem(
-        total, avail, percent, used, free, active, inactive, wired
-    )
+    stats = {}
+    with open(f"{get_procfs_path()}/vm/stats", 'r') as f:
+        for _line in f:
+            line = _line.strip()
+            if len(line) == 0:
+                continue
+            s1 = line.split("=")
+            if len(s1) < 2:
+                continue
+            key=s1[0]
+            s2 = s1[1].split(" ")
+            try:
+                if s2[0].startswith("0x"):
+                    val = int(s2[0], 16) * PAGESIZE
+                else:
+                    val = int(s2[0])
+            except Exception as e:
+                print(e)
+                continue
+            stats[key] = val
 
+    total = stats.get("page_count", 0)
+    available = stats.get("vmem_avail", 0)
+
+    if total > 0:
+        percent = (total - available) / total * 100
+    else:
+        percent = 0
+    free = stats.get("pages_free", 0)
+
+    # Parse the stats
+    return ntp.svmem(total, available, percent, free)
 
 def swap_memory():
     """Swap system memory as a (total, used, free, sin, sout) tuple."""
-    total, used, free, sin, sout = cext.swap_mem()
-    percent = usage_percent(used, total, round_=1)
-    return ntp.sswap(total, used, free, percent, sin, sout)
-
-
-# malloc / heap functions
-# heap_info = cext.heap_info
-# heap_trim = cext.heap_trim
+    # There is no swap on QNX
+    return ntp.sswap(0, 0, 0, 0, 0)
 
 
 # =====================================================================
@@ -146,12 +158,13 @@ def swap_memory():
 # =====================================================================
 
 
+# TODO
 def cpu_times():
     """Return system CPU times as a namedtuple."""
     user, nice, system, idle = cext.cpu_times()
     return ntp.scputimes(user, nice, system, idle)
 
-
+# TODO
 def per_cpu_times():
     """Return system CPU times as a named tuple."""
     ret = []
@@ -173,7 +186,7 @@ def cpu_count_cores():
     # QNX isn't aware of hyperthreaded cores
     return None
 
-
+# TODO
 def cpu_stats():
     ctx_switches, interrupts, soft_interrupts, syscalls, _traps = (
         cext.cpu_stats()
@@ -192,7 +205,8 @@ def cpu_freq():
 # disk_usage = _psposix.disk_usage
 # disk_io_counters = cext.disk_io_counters
 
-
+# TODO
+# DCMD_F3S_PARTINFO
 def disk_partitions(all=False):
     """Return mounted disk partitions as a list of namedtuples."""
     retlist = []
@@ -213,7 +227,7 @@ def disk_partitions(all=False):
 # --- sensors
 # =====================================================================
 
-
+# TODO
 def sensors_battery():
     """Return battery information."""
     try:
@@ -262,20 +276,9 @@ def net_if_stats():
 
 def net_connections(kind='inet'):
     """System-wide network connections."""
-    # Note: on macOS this will fail with AccessDenied unless
-    # the process is owned by root.
-    ret = []
-    for pid in pids():
-        try:
-            cons = Process(pid).net_connections(kind)
-        except NoSuchProcess:
-            continue
-        else:
-            if cons:
-                for c in cons:
-                    c = list(c) + [pid]
-                    ret.append(ntp.sconn(*c))
-    return ret
+    # Not supported
+    # Technically possible to do, but requires headers unavailable in this current version
+    return []
 
 
 # =====================================================================
@@ -288,6 +291,7 @@ def boot_time():
 
 
 
+# TODO
 def adjust_proc_create_time(ctime):
     """Account for system clock updates."""
     if INIT_BOOT_TIME == 0:
@@ -303,6 +307,7 @@ def adjust_proc_create_time(ctime):
     return ctime + diff
 
 
+# TODO
 def users():
     """Return currently connected users as a list of namedtuples."""
     retlist = []
@@ -413,6 +418,7 @@ class Process:
 
     @wrap_exceptions
     def name(self):
+        # POSSIBLE WITH DCMD_PROC_MAPDEBUG_BASE
         return "UNIMPLEMENTED"
 
     @wrap_exceptions
@@ -436,6 +442,7 @@ class Process:
 
     @wrap_exceptions
     def cwd(self):
+        # Not supported
         # We don't have this info
         return ""
 
@@ -516,16 +523,9 @@ class Process:
 
     @wrap_exceptions
     def net_connections(self, kind='inet'):
-        families, types = conn_tmap[kind]
-        rawlist = cext.proc_net_connections(self.pid, families, types)
-        ret = []
-        for item in rawlist:
-            fd, fam, type, laddr, raddr, status = item
-            nt = conn_to_ntuple(
-                fd, fam, type, laddr, raddr, status, TCP_STATUSES
-            )
-            ret.append(nt)
-        return ret
+        # Not supported
+        # Technically possible to do, but requires headers unavailable in this current version
+        return []
 
     @wrap_exceptions
     def num_fds(self):

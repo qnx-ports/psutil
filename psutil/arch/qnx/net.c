@@ -10,6 +10,7 @@
 #include <net/if.h>
 #include <net/if_dl.h>
 #include <net/route.h>
+#include <sys/socketvar.h>  
 
 #include "../../arch/all/init.h"
 
@@ -89,3 +90,4 @@ error:
     free(buf);
     return NULL;
 }
+

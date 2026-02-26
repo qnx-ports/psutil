@@ -440,3 +440,5 @@ elif QNX:
     # psutil.Process.threads()
     pthread = nt("pthread", ("id", "system_and_user_time"))
 
+    # psutil.virtual_memory()
+    svmem = nt("svmem", ("total", "available", "percent", "free"))
