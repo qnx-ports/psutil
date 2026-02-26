@@ -158,21 +158,15 @@ def swap_memory():
 # =====================================================================
 
 
-# TODO
 def cpu_times():
     """Return system CPU times as a namedtuple."""
-    user, nice, system, idle = cext.cpu_times()
-    return ntp.scputimes(user, nice, system, idle)
+    # Not supported
+    return None
 
-# TODO
 def per_cpu_times():
     """Return system CPU times as a named tuple."""
-    ret = []
-    for cpu_t in cext.per_cpu_times():
-        user, nice, system, idle = cpu_t
-        item = ntp.scputimes(user, nice, system, idle)
-        ret.append(item)
-    return ret
+    # Not supported
+    return None
 
 
 def cpu_count_logical():
@@ -186,12 +180,9 @@ def cpu_count_cores():
     # QNX isn't aware of hyperthreaded cores
     return None
 
-# TODO
 def cpu_stats():
-    ctx_switches, interrupts, soft_interrupts, syscalls, _traps = (
-        cext.cpu_stats()
-    )
-    return ntp.scpustats(ctx_switches, interrupts, soft_interrupts, syscalls)
+    # Not supported
+    return None
 
 
 def cpu_freq():
@@ -205,44 +196,20 @@ def cpu_freq():
 # disk_usage = _psposix.disk_usage
 # disk_io_counters = cext.disk_io_counters
 
-# TODO
-# DCMD_F3S_PARTINFO
 def disk_partitions(all=False):
     """Return mounted disk partitions as a list of namedtuples."""
-    retlist = []
-    partitions = cext.disk_partitions()
-    for partition in partitions:
-        device, mountpoint, fstype, opts = partition
-        if device == 'none':
-            device = ''
-        if not all:
-            if not os.path.isabs(device) or not os.path.exists(device):
-                continue
-        ntuple = ntp.sdiskpart(device, mountpoint, fstype, opts)
-        retlist.append(ntuple)
-    return retlist
+    # Not supported
+    return None
 
 
 # =====================================================================
 # --- sensors
 # =====================================================================
 
-# TODO
 def sensors_battery():
     """Return battery information."""
-    try:
-        percent, minsleft, power_plugged = cext.sensors_battery()
-    except NotImplementedError:
-        # no power source - return None according to interface
-        return None
-    power_plugged = power_plugged == 1
-    if power_plugged:
-        secsleft = _common.POWER_TIME_UNLIMITED
-    elif minsleft == -1:
-        secsleft = _common.POWER_TIME_UNKNOWN
-    else:
-        secsleft = minsleft * 60
-    return ntp.sbattery(percent, secsleft, power_plugged)
+    # Not supported
+    return None
 
 
 # =====================================================================
@@ -291,36 +258,10 @@ def boot_time():
 
 
 
-# TODO
-def adjust_proc_create_time(ctime):
-    """Account for system clock updates."""
-    if INIT_BOOT_TIME == 0:
-        return ctime
-
-    diff = INIT_BOOT_TIME - boot_time()
-    if diff == 0 or abs(diff) < 1:
-        return ctime
-
-    debug("system clock was updated; adjusting process create_time()")
-    if diff < 0:
-        return ctime - diff
-    return ctime + diff
-
-
-# TODO
 def users():
     """Return currently connected users as a list of namedtuples."""
-    retlist = []
-    rawlist = cext.users()
-    for item in rawlist:
-        user, tty, hostname, tstamp, pid = item
-        if tty == '~':
-            continue  # reboot or shutdown
-        if not tstamp:
-            continue
-        nt = ntp.suser(user, tty or None, hostname or None, tstamp, pid)
-        retlist.append(nt)
-    return retlist
+    # Not supported
+    return []
 
 
 # =====================================================================
@@ -502,10 +443,7 @@ class Process:
 
     @wrap_exceptions
     def create_time(self, monotonic=False):
-        ctime = self.self.proc_basic_info()[procbasicinfo_map['start_time']]
-        if not monotonic:
-            ctime = adjust_proc_create_time(ctime)
-        return ctime
+        return self.self.proc_basic_info()[procbasicinfo_map['start_time']]
 
     @wrap_exceptions
     def num_ctx_switches(self):
