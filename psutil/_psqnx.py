@@ -53,13 +53,31 @@ TCP_STATUSES = {
     cext.PSUTIL_CONN_NONE: _common.CONN_NONE,
 }
 
-# PROC_STATUSES = {
-#     cext.SIDL: _common.STATUS_IDLE,
-#     cext.SRUN: _common.STATUS_RUNNING,
-#     cext.SSLEEP: _common.STATUS_SLEEPING,
-#     cext.SSTOP: _common.STATUS_STOPPED,
-#     cext.SZOMB: _common.STATUS_ZOMBIE,
-# }
+PROC_STATUSES = {
+    0:  "dead",
+    1:  "running",
+    2:  "ready",
+    3:  "stopped",
+    4:  "send",
+    5:  "receive",
+    6:  "reply",
+    7:  "mq_send",
+    8:  "mq_receive",
+    9:  "waitpage",
+    10: "sigsuspend",
+    11: "sigwaitinfo",
+    12: "nanosleep",
+    13: "mutex",
+    14: "condvar",
+    15: "join",
+    16: "intr",
+    17: "sem",
+    18: "waitctx",
+    19: "rwlock_read",
+    20: "rwlock_write",
+    21: "barrier",
+    22: "pipe"
+}
 
 pidtaskinfo_map = dict(
     cpuutime=0,
@@ -83,7 +101,8 @@ procbasicinfo_map = dict (
     euid=7,
     egid=8,
     suid=9,
-    sgid=10
+    sgid=10,
+    status=11
 )
 
 
@@ -526,9 +545,8 @@ class Process:
 
     @wrap_exceptions
     def status(self):
-        code = self._get_kinfo_proc()[kinfo_proc_map['status']]
+        code = self._proc_basic_info()[procbasicinfo_map["status"]]
         # XXX is '?' legit? (we're not supposed to return it anyway)
-        print("UNIMPLEMENTED")
         return PROC_STATUSES.get(code, '?')
 
     @wrap_exceptions

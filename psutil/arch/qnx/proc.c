@@ -11,12 +11,14 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sched.h>
+#include <errno.h>
 
 #include "../../arch/all/init.h"
 
 PyObject *
 psutil_proc_basic_info(PyObject *self, PyObject *args) {
-    procfs_info info;
+    debug_process_t p_info;
+    debug_thread_t  t_info;
     int fd;
     char fn[PATH_MAX];
     int pid;
@@ -28,28 +30,39 @@ psutil_proc_basic_info(PyObject *self, PyObject *args) {
 
     fd = open(fn, O_RDONLY);
     if (fd == NOFD) {
+        psutil_oserror_ad("open");
         return NULL;
     }
 
-    errno = devctl(fd, DCMD_PROC_INFO, &info, sizeof info, 0);
-    close(fd);
+    errno = devctl(fd, DCMD_PROC_INFO, &p_info, sizeof p_info, 0);
     if (errno != EOK) {
+        psutil_oserror_ad("devctl -> DMCD_PROC_INFO");
         return NULL;
     }
+
+    t_info.tid = 1;
+    errno = devctl(fd, DCMD_PROC_TIDSTATUS, &t_info, sizeof t_info, 0);
+    if (errno != EOK) {
+        psutil_oserror_ad("devctl -> DMCD_PROC_STATUS");
+        return NULL;
+    }
+
+    close(fd);
 
     return Py_BuildValue(
-        "iKKKBiiiiii",
-        info.parent,
-        info.start_time,
-        info.utime,
-        info.stime,
-        info.num_threads,
-        info.uid,
-        info.gid,
-        info.euid,
-        info.egid,
-        info.suid,
-        info.sgid
+        "iKKKBiiiiiiB",
+        p_info.parent,
+        p_info.start_time,
+        p_info.utime,
+        p_info.stime,
+        p_info.num_threads,
+        p_info.uid,
+        p_info.gid,
+        p_info.euid,
+        p_info.egid,
+        p_info.suid,
+        p_info.sgid,
+        t_info.state
     );
 }
 

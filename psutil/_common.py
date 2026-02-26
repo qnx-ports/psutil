@@ -103,6 +103,8 @@ STATUS_LOCKED = "locked"  # FreeBSD
 STATUS_WAITING = "waiting"  # FreeBSD
 STATUS_SUSPENDED = "suspended"  # NetBSD
 STATUS_PARKED = "parked"  # Linux
+STATUS_BLOCKED = "blocked"  # QNX
+STATUS_READY = "ready"  # QNX
 
 # Process.net_connections() and psutil.net_connections()
 CONN_ESTABLISHED = "ESTABLISHED"
