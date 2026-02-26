@@ -436,3 +436,7 @@ elif QNX:
 
     # psutil.Process.memory_full_info()
     pfullmem = nt("pfullmem", pmem._fields + ("physical", "shared", "private", "region", "map", "anon_rsv", "rlimit_data"))
+
+    # psutil.Process.threads()
+    pthread = nt("pthread", ("id", "system_and_user_time"))
+

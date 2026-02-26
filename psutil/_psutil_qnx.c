@@ -24,6 +24,7 @@ static PyMethodDef mod_methods[] = {
     {"cpu_count_logical", psutil_cpu_count_logical, METH_VARARGS},
     {"cpu_freq", psutil_cpu_freq, METH_VARARGS},
     {"proc_basic_info", psutil_proc_basic_info, METH_VARARGS},
+    {"proc_threads", psutil_proc_threads, METH_VARARGS},
     {"proc_priority_get", psutil_proc_priority_get, METH_VARARGS},
     {"proc_priority_set", psutil_proc_priority_set, METH_VARARGS},
 

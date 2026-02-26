@@ -551,9 +551,4 @@ class Process:
 
     @wrap_exceptions
     def threads(self):
-        rawlist = cext.proc_threads(self.pid)
-        retlist = []
-        for thread_id, utime, stime in rawlist:
-            ntuple = ntp.pthread(thread_id, utime, stime)
-            retlist.append(ntuple)
-        return retlist
+        return [ntp.pthread(x,y) for x,y in cext.proc_threads(self.pid)]

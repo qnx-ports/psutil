@@ -12,6 +12,7 @@
 #include <sys/mman.h>
 #include <sched.h>
 #include <errno.h>
+#include <sys/neutrino.h>
 
 #include "../../arch/all/init.h"
 
@@ -64,6 +65,62 @@ psutil_proc_basic_info(PyObject *self, PyObject *args) {
         p_info.sgid,
         t_info.state
     );
+}
+
+PyObject *
+psutil_proc_threads(PyObject *self, PyObject *args) {
+    debug_thread_t  t_info;
+    int fd;
+    char fn[PATH_MAX];
+    int pid;
+    int tid;
+    PyObject *py_retlist = PyList_New(0);
+
+    if (!PyArg_ParseTuple(args, "i", &pid))
+        return NULL;
+
+    snprintf(fn, sizeof fn, "/proc/%d/as", pid);
+
+    fd = open(fn, O_RDONLY);
+    if (fd == NOFD) {
+        psutil_oserror_ad("open");
+        return NULL;
+    }
+
+    t_info.tid = tid = 1;
+    while (t_info.tid >= tid) {
+        errno = devctl(fd, DCMD_PROC_TIDSTATUS, &t_info, sizeof t_info, 0);
+        if (errno == ESRCH) {
+            // we exhausted all the thread IDs
+            break;
+        } else if (errno != EOK) {
+            psutil_oserror_ad("devctl -> DCMD_PROC_TIDSTATUS");
+            goto error;
+        }
+
+        // we exhausted all the thread IDs
+        if (t_info.tid < tid) {
+            break;
+        }
+
+        if(PyList_Append(py_retlist, Py_BuildValue("(iK)", t_info.tid, t_info.sutime))){
+            goto error;
+        }
+
+        tid = ++t_info.tid;
+
+        if (t_info.flags & _NTO_PF_ZOMBIE) {
+            continue;
+        }
+    }
+
+    close(fd);
+    return py_retlist;
+
+error:
+    close(fd);
+    Py_XDECREF(py_retlist);
+    return NULL;
 }
 
 // Get PID priority.
