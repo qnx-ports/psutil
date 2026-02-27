@@ -5,27 +5,19 @@
 """QNX platform implementation."""
 
 import errno
-import enum
 import functools
 import os
-import re
 
 from . import _common
 from . import _ntuples as ntp
 from . import _psposix
 from . import _psutil_qnx as cext
 from ._common import ENCODING
-from ._common import get_procfs_path
 from ._common import AccessDenied
 from ._common import NoSuchProcess
 from ._common import ZombieProcess
-from ._common import conn_tmap
-from ._common import conn_to_ntuple
-from ._common import debug
-from ._common import isfile_strict
+from ._common import get_procfs_path
 from ._common import memoize_when_activated
-from ._common import parse_environ_block
-from ._common import usage_percent
 
 __extra__all__ = [
     "PROCFS_PATH",
@@ -55,16 +47,16 @@ TCP_STATUSES = {
 }
 
 PROC_STATUSES = {
-    0:  "dead",
-    1:  "running",
-    2:  "ready",
-    3:  "stopped",
-    4:  "send",
-    5:  "receive",
-    6:  "reply",
-    7:  "mq_send",
-    8:  "mq_receive",
-    9:  "waitpage",
+    0: "dead",
+    1: "running",
+    2: "ready",
+    3: "stopped",
+    4: "send",
+    5: "receive",
+    6: "reply",
+    7: "mq_send",
+    8: "mq_receive",
+    9: "waitpage",
     10: "sigsuspend",
     11: "sigwaitinfo",
     12: "nanosleep",
@@ -77,7 +69,7 @@ PROC_STATUSES = {
     19: "rwlock_read",
     20: "rwlock_write",
     21: "barrier",
-    22: "pipe"
+    22: "pipe",
 }
 
 pidtaskinfo_map = dict(
@@ -91,7 +83,7 @@ pidtaskinfo_map = dict(
     volctxsw=7,
 )
 
-procbasicinfo_map = dict (
+procbasicinfo_map = dict(
     parent_pid=0,
     start_time=1,
     utime=2,
@@ -103,7 +95,7 @@ procbasicinfo_map = dict (
     egid=8,
     suid=9,
     sgid=10,
-    status=11
+    status=11,
 )
 
 
@@ -115,37 +107,31 @@ procbasicinfo_map = dict (
 def virtual_memory():
     """System virtual memory as a namedtuple."""
     stats = {}
-    with open(f"{get_procfs_path()}/vm/stats", 'r') as f:
-        for _line in f:
-            line = _line.strip()
+    with open(f"{get_procfs_path()}/vm/stats") as f:
+        for f_line in f:
+            line = f_line.strip()
             if len(line) == 0:
                 continue
             s1 = line.split("=")
             if len(s1) < 2:
                 continue
-            key=s1[0]
+            key = s1[0]
             s2 = s1[1].split(" ")
-            try:
-                if s2[0].startswith("0x"):
-                    val = int(s2[0], 16) * PAGESIZE
-                else:
-                    val = int(s2[0])
-            except Exception as e:
-                print(e)
-                continue
+            if s2[0].startswith("0x"):
+                val = int(s2[0], 16) * PAGESIZE
+            else:
+                val = int(s2[0])
             stats[key] = val
 
     total = stats.get("page_count", 0)
     available = stats.get("vmem_avail", 0)
 
-    if total > 0:
-        percent = (total - available) / total * 100
-    else:
-        percent = 0
+    percent = (total - available) / total * 100 if total > 0 else 0
     free = stats.get("pages_free", 0)
 
     # Parse the stats
     return ntp.svmem(total, available, percent, free)
+
 
 def swap_memory():
     """Swap system memory as a (total, used, free, sin, sout) tuple."""
@@ -161,12 +147,11 @@ def swap_memory():
 def cpu_times():
     """Return system CPU times as a namedtuple."""
     # Not supported
-    return None
+
 
 def per_cpu_times():
     """Return system CPU times as a named tuple."""
     # Not supported
-    return None
 
 
 def cpu_count_logical():
@@ -178,15 +163,16 @@ def cpu_count_cores():
     """Return the number of CPU cores in the system."""
     # Not supported
     # QNX isn't aware of hyperthreaded cores
-    return None
+
 
 def cpu_stats():
+    """Returns information about the CPU operations"""
     # Not supported
-    return None
 
 
 def cpu_freq():
-    return [ntp.scpufreq(x, y, z) for x,y,z in cext.cpu_freq()]
+    return [ntp.scpufreq(x, y, z) for x, y, z in cext.cpu_freq()]
+
 
 # =====================================================================
 # --- disks
@@ -196,20 +182,20 @@ def cpu_freq():
 # disk_usage = _psposix.disk_usage
 # disk_io_counters = cext.disk_io_counters
 
+
 def disk_partitions(all=False):
     """Return mounted disk partitions as a list of namedtuples."""
     # Not supported
-    return None
 
 
 # =====================================================================
 # --- sensors
 # =====================================================================
 
+
 def sensors_battery():
     """Return battery information."""
     # Not supported
-    return None
 
 
 # =====================================================================
@@ -219,6 +205,7 @@ def sensors_battery():
 
 net_io_counters = cext.net_io_counters
 net_if_addrs = cext.net_if_addrs
+
 
 def net_if_stats():
     """Get NIC stats (isup, duplex, speed, mtu)."""
@@ -241,10 +228,12 @@ def net_if_stats():
             ret[name] = ntp.snicstats(isup, duplex, speed, mtu, output_flags)
     return ret
 
+
 def net_connections(kind='inet'):
     """System-wide network connections."""
     # Not supported
-    # Technically possible to do, but requires headers unavailable in this current version
+    # Technically possible to do, but requires headers unavailable in this
+    # current version
     return []
 
 
@@ -255,7 +244,6 @@ def net_connections(kind='inet'):
 
 def boot_time():
     return cext.boot_time()
-
 
 
 def users():
@@ -332,22 +320,16 @@ class Process:
                 continue
             key = s2[1]
             s3 = s1[1].split(" ")
-            try:
-                if s3[0].startswith("0x"):
-                    val = int(s3[0], 16) * PAGESIZE
-                else:
-                    val = int(s3[0])
-            except:
-                continue
+            if s3[0].startswith("0x"):
+                val = int(s3[0], 16) * PAGESIZE
+            else:
+                val = int(s3[0])
             stats[key] = val
         return stats
 
     def _readfile(self, path):
-        try:
-            with open(path, 'r') as f:
-                return f.read().strip('\x00')
-        except:
-            return ""
+        with open(path) as f:
+            return f.read().strip('\x00')
 
     def oneshot_enter(self):
         self._proc_basic_info.cache_activate(self)
@@ -373,7 +355,8 @@ class Process:
     @wrap_exceptions
     def environ(self):
         # Not supported
-        # Theres no way QNX let's us read someone elses ENV variables without root
+        # Theres no way QNX let's us read someone elses ENV variables without
+        # root
         return {}
 
     @wrap_exceptions
@@ -400,9 +383,9 @@ class Process:
     def gids(self):
         rawtuple = self._proc_basic_info()
         return ntp.puids(
-            rawtuple[kinfo_proc_map['gid']],
-            rawtuple[kinfo_proc_map['egid']],
-            rawtuple[kinfo_proc_map['sgid']],
+            rawtuple[procbasicinfo_map['gid']],
+            rawtuple[procbasicinfo_map['egid']],
+            rawtuple[procbasicinfo_map['sgid']],
         )
 
     @wrap_exceptions
@@ -419,16 +402,16 @@ class Process:
     def memory_full_info(self):
         rawdict = self._proc_vmstats()
         return ntp.pfullmem(
-                rawdict["rss"],
-                rawdict["map_size"],
-                rawdict["map_phys"],
-                rawdict["map_shared"],
-                rawdict["map_private"],
-                rawdict["vm_region"],
-                rawdict["vm_map"],
-                rawdict["anon_rsv"],
-                rawdict["rlimit_data"]
-            )
+            rawdict["rss"],
+            rawdict["map_size"],
+            rawdict["map_phys"],
+            rawdict["map_shared"],
+            rawdict["map_private"],
+            rawdict["vm_region"],
+            rawdict["vm_map"],
+            rawdict["anon_rsv"],
+            rawdict["rlimit_data"],
+        )
 
     @wrap_exceptions
     def cpu_times(self):
@@ -452,7 +435,7 @@ class Process:
 
     @wrap_exceptions
     def num_threads(self):
-        ctime = self.self.proc_basic_info()[procbasicinfo_map['num_threads']]
+        return self.self.proc_basic_info()[procbasicinfo_map['num_threads']]
 
     @wrap_exceptions
     def open_files(self):
@@ -462,7 +445,8 @@ class Process:
     @wrap_exceptions
     def net_connections(self, kind='inet'):
         # Not supported
-        # Technically possible to do, but requires headers unavailable in this current version
+        # Technically possible to do, but requires headers unavailable in this
+        # current version
         return []
 
     @wrap_exceptions
@@ -489,4 +473,4 @@ class Process:
 
     @wrap_exceptions
     def threads(self):
-        return [ntp.pthread(x,y) for x,y in cext.proc_threads(self.pid)]
+        return [ntp.pthread(x, y) for x, y in cext.proc_threads(self.pid)]

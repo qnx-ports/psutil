@@ -203,8 +203,9 @@ psutil_cpu_count_cores(PyObject *self, PyObject *args) {
                 if (buffer) {
                     free(buffer);
                 }
-                buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX
-                )malloc(length);
+                buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(
+                    length
+                );
                 if (NULL == buffer) {
                     PyErr_NoMemory();
                     return NULL;

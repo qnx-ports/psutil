@@ -132,7 +132,7 @@ PyInit__psutil_bsd(void) {
     if (PyModule_AddIntConstant(mod, "version", PSUTIL_VERSION))
         return NULL;
 
-        // process status constants
+    // process status constants
 #ifdef PSUTIL_FREEBSD
     if (PyModule_AddIntConstant(mod, "SIDL", SIDL))
         return NULL;

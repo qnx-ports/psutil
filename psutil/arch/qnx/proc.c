@@ -19,7 +19,7 @@
 PyObject *
 psutil_proc_basic_info(PyObject *self, PyObject *args) {
     debug_process_t p_info;
-    debug_thread_t  t_info;
+    debug_thread_t t_info;
     int fd;
     char fn[PATH_MAX];
     int pid;
@@ -69,7 +69,7 @@ psutil_proc_basic_info(PyObject *self, PyObject *args) {
 
 PyObject *
 psutil_proc_threads(PyObject *self, PyObject *args) {
-    debug_thread_t  t_info;
+    debug_thread_t t_info;
     int fd;
     char fn[PATH_MAX];
     int pid;
@@ -93,7 +93,8 @@ psutil_proc_threads(PyObject *self, PyObject *args) {
         if (errno == ESRCH) {
             // we exhausted all the thread IDs
             break;
-        } else if (errno != EOK) {
+        }
+        else if (errno != EOK) {
             psutil_oserror_ad("devctl -> DCMD_PROC_TIDSTATUS");
             goto error;
         }
@@ -103,7 +104,10 @@ psutil_proc_threads(PyObject *self, PyObject *args) {
             break;
         }
 
-        if(PyList_Append(py_retlist, Py_BuildValue("(iK)", t_info.tid, t_info.sutime))){
+        if (PyList_Append(
+                py_retlist, Py_BuildValue("(iK)", t_info.tid, t_info.sutime)
+            ))
+        {
             goto error;
         }
 
@@ -150,7 +154,7 @@ psutil_proc_priority_set(PyObject *self, PyObject *args) {
 
     prio.sched_priority = SCHED_PRIO_LIMIT_SATURATE(priority);
 
-    if(sched_setparam(pid, &prio))
+    if (sched_setparam(pid, &prio))
         return psutil_oserror();
 
     Py_RETURN_NONE;

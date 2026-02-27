@@ -55,7 +55,7 @@ static PyMethodDef posix_methods[] = {
 #if !defined(PSUTIL_QNX)
     {"proc_priority_get", psutil_proc_priority_get, METH_VARARGS},
     {"proc_priority_set", psutil_proc_priority_set, METH_VARARGS},
-#endif // !defined(PSUTIL_QNX)
+#endif  // !defined(PSUTIL_QNX)
 #if defined(PSUTIL_BSD) || defined(PSUTIL_OSX) || defined(PSUTIL_QNX)
     {"net_if_duplex_speed", psutil_net_if_duplex_speed, METH_VARARGS},
 #endif
@@ -161,7 +161,7 @@ psutil_posix_add_constants(PyObject *mod) {
         return -1;
 #endif
 
-        // Linux specific
+    // Linux specific
 
 #ifdef RLIMIT_LOCKS
     if (PyModule_AddIntConstant(mod, "RLIMIT_LOCKS", RLIMIT_LOCKS))
@@ -193,7 +193,7 @@ psutil_posix_add_constants(PyObject *mod) {
         return -1;
 #endif
 
-        // Free specific
+    // Free specific
 
 #ifdef RLIMIT_SWAP
     if (PyModule_AddIntConstant(mod, "RLIMIT_SWAP", RLIMIT_SWAP))

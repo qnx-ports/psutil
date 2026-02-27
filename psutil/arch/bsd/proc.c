@@ -48,7 +48,7 @@ psutil_proc_oneshot_info(PyObject *self, PyObject *args) {
     if (psutil_kinfo_proc(pid, &kp) == -1)
         return NULL;
 
-        // Process
+    // Process
 #ifdef PSUTIL_FREEBSD
     str_format(name_buf, sizeof(name_buf), "%s", kp.ki_comm);
 #elif defined(PSUTIL_OPENBSD) || defined(PSUTIL_NETBSD)

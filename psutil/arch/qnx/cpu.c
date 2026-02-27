@@ -17,21 +17,21 @@ psutil_cpu_count_logical(PyObject *self, PyObject *args) {
 
 PyObject *
 psutil_cpu_freq(PyObject *self, PyObject *args) {
-    PyObject *py_tuple   = NULL;
+    PyObject *py_tuple = NULL;
     PyObject *py_retlist = PyList_New(0);
 
-	struct cpuinfo_entry *cpuinfo = (struct cpuinfo_entry *)_SYSPAGE_ENTRY(_syspage_ptr, cpuinfo);;
+    struct cpuinfo_entry *cpuinfo = (struct cpuinfo_entry *)_SYSPAGE_ENTRY(
+        _syspage_ptr, cpuinfo
+    );
+    ;
     size_t cpuinfo_sz = _SYSPAGE_ELEMENT_SIZE(_syspage_ptr, cpuinfo);
 
     struct cpuinfo_entry *cpu = cpuinfo;
-    int i=0;
-    while(i < _syspage_ptr->num_cpu) {
+    int i = 0;
+    while (i < _syspage_ptr->num_cpu) {
         py_tuple = Py_BuildValue(
-                "(Idd)",
-                cpu->speed,
-                (double) 0.0,
-                (double) 0.0
-                );
+            "(Idd)", cpu->speed, (double)0.0, (double)0.0
+        );
         if (!py_tuple) {
             goto error;
         }

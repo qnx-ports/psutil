@@ -39,7 +39,6 @@ from . import _common
 from . import _ntuples as _ntp
 from ._common import AIX
 from ._common import BSD
-from ._common import QNX
 from ._common import CONN_CLOSE
 from ._common import CONN_CLOSE_WAIT
 from ._common import CONN_CLOSING
@@ -64,6 +63,7 @@ from ._common import OSX  # deprecated alias
 from ._common import POSIX
 from ._common import POWER_TIME_UNKNOWN
 from ._common import POWER_TIME_UNLIMITED
+from ._common import QNX
 from ._common import STATUS_DEAD
 from ._common import STATUS_DISK_SLEEP
 from ._common import STATUS_IDLE

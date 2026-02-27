@@ -370,8 +370,8 @@ psutil_proc_net_connections(PyObject *self, PyObject *args) {
                     path,
                     sizeof(path),
                     "%.*s",
-                    (int)(sun->sun_len - (sizeof(*sun) - sizeof(sun->sun_path))
-                    ),
+                    (int)(sun->sun_len
+                          - (sizeof(*sun) - sizeof(sun->sun_path))),
                     sun->sun_path
                 );
 

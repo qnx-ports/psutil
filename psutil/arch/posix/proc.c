@@ -90,4 +90,4 @@ psutil_proc_priority_set(PyObject *self, PyObject *args) {
         return psutil_oserror();
     Py_RETURN_NONE;
 }
-#endif // !defined(PSUTIL_QNX)
+#endif  // !defined(PSUTIL_QNX)

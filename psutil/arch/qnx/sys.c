@@ -17,5 +17,5 @@ psutil_boot_time(PyObject *self, PyObject *args) {
 
     boot_time = _SYSPAGE_ENTRY(_syspage_ptr, qtime)->boot_time;
 
-    return Py_BuildValue("d", (double) boot_time);
+    return Py_BuildValue("d", (double)boot_time);
 }

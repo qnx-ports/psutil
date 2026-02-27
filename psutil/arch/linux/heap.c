@@ -46,7 +46,7 @@ psutil_heap_info(PyObject *self, PyObject *args) {
     if (fun != NULL) {
         struct my_mallinfo2 m2;
 
-        m2 = ((struct my_mallinfo2(*)(void))fun)();
+        m2 = ((struct my_mallinfo2 (*)(void))fun)();
 
         uord = (unsigned long long)m2.uordblks;
         mmap = (unsigned long long)m2.hblkhd;

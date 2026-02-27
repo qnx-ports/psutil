@@ -114,7 +114,7 @@ psutil_disk_partitions(PyObject *self, PyObject *args) {
             str_append(opts, sizeof(opts), ",force");
         if (flags & MNT_CMDFLAGS)
             str_append(opts, sizeof(opts), ",cmdflags");
-            // requires macOS >= 10.5
+        // requires macOS >= 10.5
 #ifdef MNT_QUARANTINE
         if (flags & MNT_QUARANTINE)
             str_append(opts, sizeof(opts), ",quarantine");
@@ -285,8 +285,9 @@ psutil_disk_io_counters(PyObject *self, PyObject *args) {
             goto error;
         }
 
-        CFStringRef disk_name_ref = (CFStringRef
-        )CFDictionaryGetValue(parent_dict, CFSTR(kIOBSDNameKey));
+        CFStringRef disk_name_ref = (CFStringRef)CFDictionaryGetValue(
+            parent_dict, CFSTR(kIOBSDNameKey)
+        );
         if (disk_name_ref == NULL) {
             psutil_runtime_error("unable to get disk name");
             goto error;

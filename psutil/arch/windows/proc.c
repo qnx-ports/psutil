@@ -199,8 +199,8 @@ psutil_proc_times(PyObject *self, PyObject *args) {
     return Py_BuildValue(
         "(ddd)",
         (double)(ftUser.dwHighDateTime * HI_T + ftUser.dwLowDateTime * LO_T),
-        (double)(ftKernel.dwHighDateTime * HI_T + ftKernel.dwLowDateTime * LO_T
-        ),
+        (double)(ftKernel.dwHighDateTime * HI_T
+                 + ftKernel.dwLowDateTime * LO_T),
         psutil_FiletimeToUnixTime(ftCreate)
     );
 }

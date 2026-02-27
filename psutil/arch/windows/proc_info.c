@@ -26,12 +26,11 @@ typedef NTSTATUS(NTAPI *__NtQueryInformationProcess)(
 #define PSUTIL_FIRST_PROCESS(Processes) \
     ((PSYSTEM_PROCESS_INFORMATION)(Processes))
 
-#define PSUTIL_NEXT_PROCESS(Process)                                              \
-    (((PSYSTEM_PROCESS_INFORMATION)(Process))->NextEntryOffset                    \
-         ? (PSYSTEM_PROCESS_INFORMATION)((PCHAR)(Process)                         \
-                                         + ((PSYSTEM_PROCESS_INFORMATION)(Process \
-                                            ))                                    \
-                                               ->NextEntryOffset)                 \
+#define PSUTIL_NEXT_PROCESS(Process)                                                \
+    (((PSYSTEM_PROCESS_INFORMATION)(Process))->NextEntryOffset                      \
+         ? (PSYSTEM_PROCESS_INFORMATION)((PCHAR)(Process)                           \
+                                         + ((PSYSTEM_PROCESS_INFORMATION)(Process)) \
+                                               ->NextEntryOffset)                   \
          : NULL)
 
 

@@ -57,13 +57,13 @@ sys.path.insert(0, os.path.join(HERE, "psutil"))
 
 from _common import AIX  # noqa: E402
 from _common import BSD  # noqa: E402
-from _common import QNX  # noqa: E402
 from _common import FREEBSD  # noqa: E402
 from _common import LINUX  # noqa: E402
 from _common import MACOS  # noqa: E402
 from _common import NETBSD  # noqa: E402
 from _common import OPENBSD  # noqa: E402
 from _common import POSIX  # noqa: E402
+from _common import QNX  # noqa: E402
 from _common import SUNOS  # noqa: E402
 from _common import WINDOWS  # noqa: E402
 from _common import hilite  # noqa: E402

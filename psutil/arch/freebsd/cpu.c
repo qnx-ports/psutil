@@ -43,7 +43,7 @@ psutil_per_cpu_times(PyObject *self, PyObject *args) {
     }
 
     // allocate buffer dynamically based on actual CPU count
-    long(*cpu_time)[CPUSTATES] = malloc(ncpu * sizeof(*cpu_time));
+    long (*cpu_time)[CPUSTATES] = malloc(ncpu * sizeof(*cpu_time));
     if (!cpu_time) {
         PyErr_NoMemory();
         goto error;
