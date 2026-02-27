@@ -136,7 +136,7 @@ def virtual_memory():
 def swap_memory():
     """Swap system memory as a (total, used, free, sin, sout) tuple."""
     # There is no swap on QNX
-    return ntp.sswap(0, 0, 0, 0, 0)
+    return ntp.sswap(0, 0, 0, 0, 0, 0)
 
 
 # =====================================================================
